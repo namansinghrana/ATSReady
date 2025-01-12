@@ -40,6 +40,9 @@ Resume Analyzer is a web application designed to help job seekers improve their 
 ### 8. Responsive Design
 - The web application is fully responsive, providing a seamless experience across desktop and mobile devices.
 
+
+## Snapshots
+
 ## Technical Details
 
 - Frontend: Built with Next.js and React
