@@ -12,9 +12,10 @@ const getMockAnalysis = (id: string) => {
     id,
     overallScore: 75,
     categoryScores: {
-      format: 80,
-      content: 70,
-      relevance: 75,
+      fillerWords: 80,
+      strongVerbs: 70,
+      weakVerbs: 75,
+      verbTenses: 85,
     },
     skillsMatch: [
       { skill: 'JavaScript', score: 90 },
@@ -69,17 +70,21 @@ export default function ResultsPage({ searchParams }: { searchParams: { id: stri
           <CardContent>
             <ChartContainer
               config={{
-                format: {
-                  label: "Format",
+                fillerWords: {
+                  label: "Filler Words",
                   color: "hsl(var(--chart-1))",
                 },
-                content: {
-                  label: "Content",
+                strongVerbs: {
+                  label: "Strong Verbs",
                   color: "hsl(var(--chart-2))",
                 },
-                relevance: {
-                  label: "Relevance",
+                weakVerbs: {
+                  label: "Weak Verbs",
                   color: "hsl(var(--chart-3))",
+                },
+                verbTenses: {
+                  label: "Verb Tenses",
+                  color: "hsl(var(--chart-4))",
                 },
               }}
               className="h-[300px]"
@@ -89,9 +94,10 @@ export default function ResultsPage({ searchParams }: { searchParams: { id: stri
                   <XAxis dataKey="name" />
                   <YAxis />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="format" fill="var(--color-format)" />
-                  <Bar dataKey="content" fill="var(--color-content)" />
-                  <Bar dataKey="relevance" fill="var(--color-relevance)" />
+                  <Bar dataKey="fillerWords" fill="var(--color-fillerWords)" />
+                  <Bar dataKey="strongVerbs" fill="var(--color-strongVerbs)" />
+                  <Bar dataKey="weakVerbs" fill="var(--color-weakVerbs)" />
+                  <Bar dataKey="verbTenses" fill="var(--color-verbTenses)" />
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>

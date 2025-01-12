@@ -1,72 +1,54 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
-import { OpenAI } from 'openai'; // Import the OpenAI class from the latest SDK
 import dotenv from 'dotenv';
 
 // Load environment variables from .env file
 dotenv.config();
 
-// OpenAI API client instance
-const openaiApiKey = process.env.OPENAI_API_KEY;
-if (!openaiApiKey) {
-  throw new Error('OpenAI API key must be provided.');
-}
+// List of filler words to check
+const fillerWords = ['um', 'uh', 'like', 'you know', 'so', 'actually', 'basically', 'literally', 'seriously', 'just'];
 
-const openai = new OpenAI({
-  apiKey: openaiApiKey,
-});
+// List of strong verbs and weak verbs
+const strongVerbs = ['achieved', 'improved', 'managed', 'created', 'resolved', 'developed', 'implemented', 'designed', 'launched', 'increased'];
+const weakVerbs = ['helped', 'assisted', 'worked', 'handled', 'made', 'used', 'tried', 'started', 'participated', 'supported'];
 
-// Function to analyze the resume content using OpenAI's GPT model
-const analyzeResume = async (resumeText: string) => {
-  try {
-    // Call OpenAI to analyze the resume text
-    const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo', // Use GPT-3.5 model if GPT-4 is not accessible
-      messages: [
-        { role: 'system', content: 'You are an assistant that analyzes resumes.' },
-        { role: 'user', content: `Analyze the following resume and provide scores for the following categories: Overall, Format, Content, and Relevance. Each score should be between 0 and 100.\n\n${resumeText}` },
-      ],
-    });
+// Function to analyze the resume content based on various categories
+const analyzeResume = (resumeText: string) => {
+  const wordCount = resumeText.split(/\s+/).length;
+  const fillerWordCount = fillerWords.reduce((count, word) => {
+    const regex = new RegExp(`\\b${word}\\b`, 'gi');
+    return count + (resumeText.match(regex)?.length || 0);
+  }, 0);
 
-    const message = response.choices[0]?.message?.content;
-    if (!message) {
-      console.error('No message content found in the response');
-      return null;
-    }
-    const analysis = message.trim();
+  const strongVerbCount = strongVerbs.reduce((count, word) => {
+    const regex = new RegExp(`\\b${word}\\b`, 'gi');
+    return count + (resumeText.match(regex)?.length || 0);
+  }, 0);
 
-    // Extract scores from the analysis text
-    const overallScore = extractScore(analysis, 'Overall');
-    const formatScore = extractScore(analysis, 'Format');
-    const contentScore = extractScore(analysis, 'Content');
-    const relevanceScore = extractScore(analysis, 'Relevance');
+  const weakVerbCount = weakVerbs.reduce((count, word) => {
+    const regex = new RegExp(`\\b${word}\\b`, 'gi');
+    return count + (resumeText.match(regex)?.length || 0);
+  }, 0);
 
-    return {
-      id: uuidv4(),
-      overallScore,
-      categoryScores: {
-        format: formatScore,
-        content: contentScore,
-        relevance: relevanceScore,
-      },
-      analysis,
-    };
-  } catch (error) {
-    const err = error as { code?: string };
-    if (err.code === 'insufficient_quota') {
-      console.error('You exceeded your current quota. Please check your plan and billing details.');
-    } else {
-      console.error('Error analyzing resume:', error);
-    }
-    return null;
-  }
-};
+  const verbTenseIssues = (resumeText.match(/\b(is|are|was|were|be|being|been)\b/gi) || []).length;
 
-// Helper function to extract scores from the analysis text
-const extractScore = (analysis: string, category: string): number => {
-  const regex = new RegExp(`${category} Score: (\\d+)`, 'i');
-  const match = analysis.match(regex);
-  return match ? parseInt(match[1], 10) : Math.floor(Math.random() * 100); // Fallback to random score if not found
+  const fillerWordScore = Math.max(0, 100 - (fillerWordCount / wordCount) * 100);
+  const strongVerbScore = Math.min(100, (strongVerbCount / wordCount) * 100);
+  const weakVerbScore = Math.max(0, 100 - (weakVerbCount / wordCount) * 100);
+  const verbTenseScore = Math.max(0, 100 - (verbTenseIssues / wordCount) * 100);
+  const overallImpactScore = (fillerWordScore + strongVerbScore + weakVerbScore + verbTenseScore) / 4;
+
+  return {
+    id: uuidv4(),
+    overallScore: overallImpactScore,
+    categoryScores: {
+      fillerWords: fillerWordScore,
+      strongVerbs: strongVerbScore,
+      weakVerbs: weakVerbScore,
+      verbTenses: verbTenseScore,
+    },
+    analysis: `The resume contains ${fillerWordCount} filler words, ${strongVerbCount} strong verbs, ${weakVerbCount} weak verbs, and ${verbTenseIssues} verb tense issues out of ${wordCount} total words.`,
+  };
 };
 
 // POST request handler
@@ -81,10 +63,6 @@ export async function POST(request: NextRequest) {
   const resumeText = await file.text(); // Assuming the file is in a readable text format (like a PDF to text conversion)
 
   // Analyze the resume
-  const analysisResult = await analyzeResume(resumeText);
-  if (!analysisResult) {
-    return NextResponse.json({ error: 'Failed to analyze the resume' }, { status: 500 });
-  }
-
+  const analysisResult = analyzeResume(resumeText);
   return NextResponse.json(analysisResult);
-} 
+}

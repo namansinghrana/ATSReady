@@ -30,18 +30,7 @@ export default function ResumeUploadForm() {
         router.push(`/results?id=${result.id}`)
       } else {
         const result = await response.json()
-        if (result.error === 'Duplicate file') {
-          // Perform analysis on the existing file without showing the error message
-          const analysisResponse = await fetch(`/api/analyze-existing-resume?id=${result.id}`)
-          if (analysisResponse.ok) {
-            const analysisResult = await analysisResponse.json()
-            router.push(`/results?id=${analysisResult.id}`)
-          } else {
-            setMessage('Failed to analyze the existing resume')
-          }
-        } else {
-          setMessage(result.error || 'Failed to analyze the resume')
-        }
+        setMessage(result.error || 'Failed to analyze the resume')
       }
     } catch (error) {
       console.error('Error:', error)
