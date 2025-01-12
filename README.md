@@ -1,11 +1,7 @@
 # Resume Analyzer
-
-## Overview
-
 Resume Analyzer is a web application designed to help job seekers improve their resumes by providing AI-powered analysis and feedback. The application uses advanced natural language processing and machine learning techniques to evaluate resumes against industry standards and job-specific requirements.
 
 ## Features
-
 ### 1. Resume Upload
 - Users can easily upload their resumes in PDF or DOCX format through a user-friendly interface.
 - The application supports drag-and-drop functionality for convenient file uploading.
