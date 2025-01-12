@@ -1,4 +1,4 @@
-# Resume Analyzer
+# ATSReady
 ![icon](https://github.com/user-attachments/assets/e805da69-52fd-4595-9fc8-8239d2ae81ac)
 Resume Analyzer is a web application designed to help job seekers improve their resumes by providing AI-powered analysis and feedback. The application uses advanced natural language processing and machine learning techniques to evaluate resumes against industry standards and job-specific requirements.
 
