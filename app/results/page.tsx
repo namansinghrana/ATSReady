@@ -26,7 +26,6 @@ export default function ResultsPage({ searchParams }: ResultsPageProps) {
 
   useEffect(() => {
     if (!analysisId) {
-      notFound()
       return
     }
 
