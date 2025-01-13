@@ -13,10 +13,15 @@ export default function ResumeUploadForm() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!file) return
+    if (!file) {
+      setMessage('No file selected')
+      console.log('No file selected') // Debugging log
+      return
+    }
 
     const formData = new FormData()
     formData.append('resume', file)
+    console.log('FormData:', formData.get('resume')) // Debugging log
     setIsLoading(true)
 
     try {
@@ -27,10 +32,12 @@ export default function ResumeUploadForm() {
 
       if (response.ok) {
         const result = await response.json()
+        console.log('Response:', result) // Debugging log
         router.push(`/results?id=${result.id}`)
       } else {
         const result = await response.json()
         setMessage(result.error || 'Failed to analyze the resume')
+        console.log('Error response:', result) // Debugging log
       }
     } catch (error) {
       console.error('Error:', error)
@@ -55,6 +62,7 @@ export default function ResumeUploadForm() {
     setIsDragging(false)
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       setFile(e.dataTransfer.files[0])
+      console.log('File dropped:', e.dataTransfer.files[0]) // Debugging log
     }
   }
 
@@ -78,7 +86,10 @@ export default function ResumeUploadForm() {
           id="resume"
           name="resume"
           accept=".pdf,.docx"
-          onChange={(e) => setFile(e.target.files?.[0] || null)}
+          onChange={(e) => {
+            setFile(e.target.files?.[0] || null)
+            console.log('File selected:', e.target.files?.[0]) // Debugging log
+          }}
           className="hidden"
         />
         <p className="text-sm text-gray-400">Supported formats: PDF, DOCX</p>

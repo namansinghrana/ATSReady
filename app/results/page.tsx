@@ -1,157 +1,136 @@
 'use client'
 
 import { notFound } from 'next/navigation'
+import { motion } from 'framer-motion'
+import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
-
-// In a real application, you would fetch this data from your database
-const getMockAnalysis = (id: string) => {
-  return {
-    id,
-    overallScore: 75,
-    categoryScores: {
-      fillerWords: 80,
-      strongVerbs: 70,
-      weakVerbs: 75,
-      verbTenses: 85,
-    },
-    skillsMatch: [
-      { skill: 'JavaScript', score: 90 },
-      { skill: 'React', score: 85 },
-      { skill: 'Node.js', score: 70 },
-      { skill: 'Python', score: 60 },
-      { skill: 'SQL', score: 75 },
-    ],
-    feedback: [
-      { type: 'positive', message: 'Strong use of action verbs in job descriptions.' },
-      { type: 'positive', message: 'Clear and concise summary of qualifications.' },
-      { type: 'negative', message: 'Lack of quantifiable achievements in work experience.' },
-      { type: 'negative', message: 'Some inconsistencies in formatting throughout the resume.' },
-      { type: 'suggestion', message: 'Consider adding a dedicated skills section to highlight technical abilities.' },
-      { type: 'suggestion', message: 'Tailor your resume more specifically to the job description for better relevance.' },
-    ],
-  }
-}
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts"
 
 export default function ResultsPage({ searchParams }: { searchParams: { id: string } }) {
   const analysisId = searchParams.id
+  const [analysis, setAnalysis] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
 
-  if (!analysisId) {
-    notFound()
+  useEffect(() => {
+    // if (!analysisId) {
+    //   notFound()
+    //   return
+    // }
+
+    const fetchAnalysis = async () => {
+      try {
+        const response = await fetch(`/api/analyze-resume?id=${analysisId}`)
+        if (response.ok) {
+          const data = await response.json()
+          setAnalysis(data)
+        } else {
+          notFound()
+        }
+      } catch (error) {
+        console.error('Error fetching analysis:', error)
+        notFound()
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchAnalysis()
+  }, [analysisId])
+
+  if (loading) {
+    return <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white py-12 px-4 sm:px-6 lg:px-8">Loading...</div>
   }
 
-  const analysis = getMockAnalysis(analysisId)
+  if (!analysis) {
+    return null
+  }
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  }
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1
+    }
+  }
+
+  const categoryScoresData = Object.entries(analysis.categoryScores).map(([key, value]) => ({
+    name: key,
+    score: value
+  }))
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Resume Analysis Results</h1>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white py-12 px-4 sm:px-6 lg:px-8">
+      <motion.div 
+        className="max-w-4xl mx-auto"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.h1 className="text-4xl font-bold mb-8 text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600" variants={itemVariants}>
+          Resume Analysis Results
+        </motion.h1>
         
-        <Card className="bg-gray-800 text-white mb-8">
-          <CardHeader>
-            <CardTitle>Overall Score</CardTitle>
-            <CardDescription>Your resume's performance across all categories</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <span className="text-4xl font-bold">{analysis.overallScore}%</span>
-              <Progress value={analysis.overallScore} className="w-2/3" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gray-800 text-white mb-8">
-          <CardHeader>
-            <CardTitle>Category Scores</CardTitle>
-            <CardDescription>Breakdown of your resume's performance by category</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer
-              config={{
-                fillerWords: {
-                  label: "Filler Words",
-                  color: "hsl(var(--chart-1))",
-                },
-                strongVerbs: {
-                  label: "Strong Verbs",
-                  color: "hsl(var(--chart-2))",
-                },
-                weakVerbs: {
-                  label: "Weak Verbs",
-                  color: "hsl(var(--chart-3))",
-                },
-                verbTenses: {
-                  label: "Verb Tenses",
-                  color: "hsl(var(--chart-4))",
-                },
-              }}
-              className="h-[300px]"
-            >
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={[analysis.categoryScores]}>
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="fillerWords" fill="var(--color-fillerWords)" />
-                  <Bar dataKey="strongVerbs" fill="var(--color-strongVerbs)" />
-                  <Bar dataKey="weakVerbs" fill="var(--color-weakVerbs)" />
-                  <Bar dataKey="verbTenses" fill="var(--color-verbTenses)" />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gray-800 text-white mb-8">
-          <CardHeader>
-            <CardTitle>Skills Match</CardTitle>
-            <CardDescription>How well your skills align with job requirements</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer
-              config={{
-                score: {
-                  label: "Match Score",
-                  color: "hsl(var(--chart-4))",
-                },
-              }}
-              className="h-[300px]"
-            >
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={analysis.skillsMatch} layout="vertical">
-                  <XAxis type="number" />
-                  <YAxis dataKey="skill" type="category" />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="score" fill="var(--color-score)" />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gray-800 text-white">
-          <CardHeader>
-            <CardTitle>Detailed Feedback</CardTitle>
-            <CardDescription>Specific insights to improve your resume</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {analysis.feedback.map((item, index) => (
-              <div key={index} className="mb-4 last:mb-0">
-                <h3 className={`font-semibold mb-1 ${
-                  item.type === 'positive' ? 'text-green-400' :
-                  item.type === 'negative' ? 'text-red-400' :
-                  'text-yellow-400'
-                }`}>
-                  {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
-                </h3>
-                <p>{item.message}</p>
+        <motion.div variants={itemVariants}>
+          <Card className="bg-gray-800 text-white mb-8 overflow-hidden">
+            <CardHeader>
+              <CardTitle>Overall Score</CardTitle>
+              <CardDescription>Your resume's performance across all categories</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <span className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
+                  {analysis.overallScore.toFixed(2)}%
+                </span>
+                <Progress value={analysis.overallScore} className="w-2/3" />
               </div>
-            ))}
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <Card className="bg-gray-800 text-white mb-8 overflow-hidden">
+            <CardHeader>
+              <CardTitle>Category Scores</CardTitle>
+              <CardDescription>Breakdown of your resume's performance by category</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={categoryScoresData}>
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="score" fill="#60a5fa" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <Card className="bg-gray-800 text-white overflow-hidden">
+            <CardHeader>
+              <CardTitle>Detailed Analysis</CardTitle>
+              <CardDescription>Specific insights about your resume</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-lg">{analysis.analysis}</p>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </motion.div>
     </div>
   )
 }
