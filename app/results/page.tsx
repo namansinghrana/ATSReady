@@ -7,16 +7,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress"
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts"
 
-export default function ResultsPage({ searchParams }: { searchParams: { id: string } }) {
-  const analysisId = searchParams.id
+interface SearchParams {
+  id: string;
+}
+
+interface ResultsPageProps {
+  searchParams?: Record<string, string | string[]> | undefined;
+}
+
+export default function ResultsPage({ searchParams }: ResultsPageProps) {
+  if (!searchParams) {
+    return <div>No query parameters provided.</div>
+  }
+
+  const analysisId = Array.isArray(searchParams.id) ? searchParams.id[0] : searchParams.id
   const [analysis, setAnalysis] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // if (!analysisId) {
-    //   notFound()
-    //   return
-    // }
+    if (!analysisId) {
+      notFound()
+      return
+    }
 
     const fetchAnalysis = async () => {
       try {

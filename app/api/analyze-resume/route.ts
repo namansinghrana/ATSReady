@@ -60,16 +60,16 @@ export async function POST(request: NextRequest) {
   const file = formData.get('resume') as File;
 
   if (!file) {
-    console.log('No file uploaded') // Debugging log
+    console.log('No file uploaded'); // Debugging log
     return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
   }
 
   const resumeText = await file.text(); // Assuming the file is in a readable text format (like a PDF to text conversion)
-  console.log('Resume text:', resumeText) // Debugging log
+  console.log('Resume text:', resumeText); // Debugging log
 
   // Analyze the resume
   const analysisResult = analyzeResume(resumeText);
-  console.log('Analysis result:', analysisResult) // Debugging log
+  console.log('Analysis result:', analysisResult); // Debugging log
 
   // Store the result in the mock database
   mockDatabase[analysisResult.id] = analysisResult;

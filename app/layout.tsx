@@ -1,19 +1,17 @@
-import type { Metadata } from 'next'
-import './globals.css'
+import { ReactNode } from 'react'
+import '../styles/globals.css'
 
-export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
-}
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <head>
+        <title>ATSReady</title>
+        <meta name="description" content="ATSReady - Resume Analysis" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </head>
+      <body>
+        {children}
+      </body>
     </html>
   )
 }
